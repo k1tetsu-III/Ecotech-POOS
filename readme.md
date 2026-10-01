@@ -1,0 +1,1 @@
+listar, buscar id, actualizar, eliminar
