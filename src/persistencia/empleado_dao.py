@@ -1,39 +1,50 @@
-from dominio.empleado import Empleado
-from persistencia.conexion import conexion_segura, marcador_sql
-
-_COLUMNAS = "id, nombre, correo, departamento_id"
-
+from persistencia.conexion import abrir_conexion, obtener_motor
 
 class EmpleadoDAO:
-    """Persistencia de Empleado. El SQL vive aquí y en ningún otro lugar."""
-
-    @staticmethod
-    def _fila_a_empleado(fila):
-        return Empleado(id=fila[0], nombre=fila[1], correo=fila[2], departamento_id=fila[3])
-
     @staticmethod
     def insertar(empleado):
-        marca = marcador_sql()
-        with conexion_segura() as conexion:
-            cursor = conexion.cursor()
-            cursor.execute(
-                "INSERT INTO empleado (nombre, correo, departamento_id) "
-                f"VALUES ({marca}, {marca}, {marca})",
-                (empleado.nombre, empleado.correo, empleado.departamento_id),
-            )
-            empleado.id = cursor.lastrowid
+        conexion = abrir_conexion()
+        cursor = conexion.cursor()
+        marcador = "?" if obtener_motor() == "sqlite" else "%s"
+
+        sql = f"""
+            INSERT INTO empleado (nombre, correo)
+            VALUES ({marcador}, {marcador})
+        """
+        cursor.execute(sql, (empleado.nombre, empleado.correo))
+        empleado.id = cursor.lastrowid
+        conexion.commit()
+        conexion.close()
         return empleado
+
+#clase 5
+from dominio.empleado import Empleado
+from persistencia.conexion import abrir_conexion, marcador_sql
+
+class EmpleadoDAO:
+    @staticmethod
+    def insertar(empleado):
+    ….
 
     @staticmethod
     def buscar_por_id(id_empleado):
+        conexion = abrir_conexion()
+        cursor = conexion.cursor()
+
         marca = marcador_sql()
-        with conexion_segura() as conexion:
-            cursor = conexion.cursor()
-            cursor.execute(
-                f"SELECT {_COLUMNAS} FROM empleado WHERE id = {marca}", (id_empleado,)
-            )
-            fila = cursor.fetchone()
-        return None if fila is None else EmpleadoDAO._fila_a_empleado(fila)
+        sql = f"""
+                    SELECT id, nombre, correo
+                    FROM empleado WHERE id = {marca}
+                """
+        cursor.execute(sql, (id_empleado,))
+        fila = cursor.fetchone()
+        conexion.close()
+
+        if fila is None:
+            return None
+return Empleado(id=fila[0], nombre=fila[1], correo=fila[2])
+
+#revisar lo que esta bajo este comentario
 
     @staticmethod
     def buscar_por_correo(correo):

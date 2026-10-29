@@ -1,21 +1,18 @@
-import logging
-
-from menu_comun import solicitar_opcion
-from menu_departamento import menu_departamento
-from menu_empleado import menu_empleado
-from menu_proyecto import menu_proyecto
-from menu_registrotiempo import menu_registrotiempo
-from persistencia.conexion import ERRORES_BD, ErrorConfiguracion
+#Paso 5 · main.py coordina la demostración
 from persistencia.crear_bd import crear_tablas
+from dominio.empleado import Empleado
+from persistencia.empleado_dao import EmpleadoDAO
 
+crear_tablas()
+empleado = Empleado(nombre="Ana Pérez", correo="ana@ecotech.cl")
 
-def mostrar_menu():
-    print("\n===== ECOTECH SOLUTIONS =====")
-    print("1. Empleados")
-    print("2. Departamentos")
-    print("3. Proyectos")
-    print("4. Registro de tiempo")
-    print("0. Salir")
+print("Antes:", empleado.id)
+# None
+
+EmpleadoDAO.insertar(empleado)
+
+print("Después:", empleado.id)
+# id generado por la BD
 
 
 def preparar_base_de_datos():
@@ -79,4 +76,4 @@ def main():
             return
         print("Sesión cerrada. Ingrese nuevamente.")
 if __name__ == "__main__":
-main()
+    main()

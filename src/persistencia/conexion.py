@@ -1,27 +1,19 @@
 import os
 import sqlite3
-from contextlib import contextmanager
-
 import pymysql
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Grupos de excepciones para capturar fallos específicos de cada tipo.
-ERRORES_INTEGRIDAD = (sqlite3.IntegrityError, pymysql.err.IntegrityError)
-ERRORES_BD = (sqlite3.Error, pymysql.MySQLError)
-
 def obtener_motor():
     return os.getenv("DB_ENGINE", "sqlite").lower()
 
-
 def abrir_conexion():
     motor = obtener_motor()
+
     if motor == "sqlite":
-        conexion = sqlite3.connect(os.getenv("DB_NAME", "ecotech.db"))
-        # SQLite no valida claves foráneas salvo que se active en cada conexión.
-        conexion.execute("PRAGMA foreign_keys = ON")
-        return conexion
+        return sqlite3.connect(os.getenv("DB_NAME", "ecotech.db"))
+
     if motor == "mysql":
         return pymysql.connect(
             host=os.getenv("DB_HOST", "localhost"),
@@ -31,13 +23,15 @@ def abrir_conexion():
             database=os.getenv("DB_NAME"),
             charset="utf8mb4",
         )
-    raise ErrorConfiguracion(f"Motor no soportado: {motor}")
+    raise ValueError(f"Motor no soportado: {motor}")
 
-
+#clase 5
 def marcador_sql():
-    return "?" if obtener_motor() == "sqlite" else "%s"
+    if obtener_motor() == "sqlite":
+        return "?"
+    return "%s"
 
-
+#revisar abajo de este comentario
 @contextmanager
 def conexion_segura():
     """Abre una conexión y garantiza commit, rollback y cierre.

@@ -156,3 +156,4 @@ entidades. Reglas relevantes:
 ## Registro de uso de herramientas de IA
 
 se le solicito a la ia actuar de ayudante, sin modificar, solamente sugerir, cuando se acordo realizar el cambio, se solicito realizarlo. 
+## IMPORTANTE ---Aun faltan cosas por documentar, falta completar algunas funciones y arreglar algunas carpetas--- plazo hasta el lunes(posiblemente)
