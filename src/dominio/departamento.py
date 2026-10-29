@@ -3,7 +3,6 @@ from utilidades import texto_no_vacio
 
 
 class Departamento:
-    """Unidad de EcoTech. UML: Departamento 1 ---- 0..* Empleado."""
 
     def __init__(self, nombre, id=None):
         self.id = id

@@ -2,7 +2,6 @@ from utilidades import correo_valido, entero_positivo, texto_no_vacio
 
 
 class Empleado:
-    """Persona que trabaja en EcoTech. Pertenece como máximo a un Departamento."""
 
     def __init__(self, nombre, correo, departamento_id=None, id=None):
         self.id = id  # None hasta que la base de datos lo genera
