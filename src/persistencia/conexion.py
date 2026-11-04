@@ -25,7 +25,7 @@ def abrir_conexion():
         )
     raise ValueError(f"Motor no soportado: {motor}")
 
-#clase 5
+#Demostración · Centralizar el marcador SQL /clase 5
 def marcador_sql():
     if obtener_motor() == "sqlite":
         return "?"

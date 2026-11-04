@@ -27,3 +27,9 @@ def crear_tablas():
 if __name__ == "__main__":
     crear_tablas()
     print("Base de datos preparada correctamente.")
+
+
+#falta agregar tablas
+#esto va en tabla usuario
+rol TEXT NOT NULL DEFAULT 'empleado'
+CHECK (rol IN ('admin', 'empleado'))

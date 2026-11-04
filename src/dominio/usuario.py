@@ -17,28 +17,38 @@ class Usuario:
 
 #Regla del nombre de usuario
 
-@classmethod
-def normalizar_usuario(cls, nombre):
+    @classmethod
+    def normalizar_usuario(cls, nombre):
 
-    if not isinstance(nombre, str):
-        raise TypeError("El usuario debe ser texto.")
-    nombre = nombre.strip().lower()
-    if not cls.MIN_USUARIO <= len(nombre) <= cls.MAX_USUARIO:
-        raise ValueError("Usuario fuera del largo permitido.")
-    if not all(c.isascii() and (c.isalnum() or c == "_")
-            for c in nombre):
-        raise ValueError("Use letras ASCII, números o guion bajo.")
-    return nombre
+        if not isinstance(nombre, str):
+            raise TypeError("El usuario debe ser texto.")
+        nombre = nombre.strip().lower()
+        if not cls.MIN_USUARIO <= len(nombre) <= cls.MAX_USUARIO:
+            raise ValueError("Usuario fuera del largo permitido.")
+        if not all(c.isascii() and (c.isalnum() or c == "_")
+                for c in nombre):
+            raise ValueError("Use letras ASCII, números o guion bajo.")
+        return nombre
 
 #Regla de la nueva contraseña
 
-@classmethod
-def validar_clave(cls, clave):
+    @classmethod
+    def validar_clave(cls, clave):
 
-    if not isinstance(clave, str):
-        raise TypeError("La contraseña debe ser texto.")
-    if len(clave) < cls.MIN_CLAVE:
-        raise ValueError(
-            f"Use al menos {cls.MIN_CLAVE} caracteres."
-        )
-    return clave # Sin strip, lower ni truncado.
+        if not isinstance(clave, str):
+            raise TypeError("La contraseña debe ser texto.")
+        if len(clave) < cls.MIN_CLAVE:
+            raise ValueError(
+                f"Use al menos {cls.MIN_CLAVE} caracteres."
+            )
+        return clave # Sin strip, lower ni truncado.
+
+#clase 04/11/2026  Usuario comprueba el rol al construir la cuenta
+
+    ROLES = ("admin", "empleado")
+    @classmethod
+    
+    def validar_rol(cls, rol):
+        if not isinstance(rol, str) or rol not in cls.ROLES:
+            raise ValueError("Rol no permitido.")
+        return rol

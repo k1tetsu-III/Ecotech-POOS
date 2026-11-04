@@ -60,8 +60,8 @@ if __name__ == "__main__":
         print("\nPrograma finalizado.")
  #cambiar y revisar todolo que esta arriba de este comentario
 
- #Inicio del programa con login inmediato
- from menu_usuario import solicitar_login, menu_privado
+#Inicio del programa con login inmediato
+from menu_usuario import solicitar_login, menu_privado
 
 def main():
     while True:
@@ -75,5 +75,64 @@ def main():
         if opcion == "0":
             return
         print("Sesión cerrada. Ingrese nuevamente.")
+if __name__ == "__main__":
+    main()
+
+#Demostración · comprobar CREATE + READ desde main.py / clase 5
+from dominio.empleado import Empleado
+from persistencia.empleado_dao import EmpleadoDAO
+
+empleado = Empleado(
+    nombre="Ana Torres",
+    correo="ana.torres@ecotech.cl"
+)
+
+EmpleadoDAO.insertar(empleado)
+
+encontrado = EmpleadoDAO.buscar_por_id(empleado.id)
+print("Encontrado:", encontrado)
+
+print("Listado:")
+for item in EmpleadoDAO.listar():
+    print(item)
+
+#
+from dependencia.empleado import Empleado
+from persistencia.empleado_dao import EmpleadoDAO
+
+def registrar_empleado():
+    nombre = input("Nombre: ").strip()
+    correo = input("Correo: ").strip()
+
+    empleado = Empleado(nombre, correo)
+
+    try:
+        EmpleadoDAO.insertar(empleado)
+        print("Empleado registrado correctamente.")
+    except Exception:
+        print("No fue posible registrar el empleado.")
+
+
+
+#
+from menus.menu_empleado import menu_empleado
+from menus.menu_proyecto import menu_proyecto
+    
+def main():
+    while True:
+        print("\n=== SISTEMA ===")
+        print("1. Empleados")
+        print("2. Proyectos")
+        print("0. Salir")
+
+        opcion = input("Seleccione una opción: ")
+
+        if opcion == "1":
+            menu_empleado()
+        elif opcion == "2":
+            menu_proyecto()
+        elif opcion == "0":
+            break
+
 if __name__ == "__main__":
     main()

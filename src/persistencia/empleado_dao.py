@@ -17,7 +17,7 @@ class EmpleadoDAO:
         conexion.close()
         return empleado
 
-#clase 5
+#Demostración · buscar_por_id() devuelve un objeto / clase 5
 from dominio.empleado import Empleado
 from persistencia.conexion import abrir_conexion, marcador_sql
 
