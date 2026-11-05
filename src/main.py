@@ -1,32 +1,70 @@
-#Paso 5 · main.py coordina la demostración
+import logging
+import sqlite3
+import pymysql
+
+from persistencia.conexion import obtener_motor
 from persistencia.crear_bd import crear_tablas
-from dominio.empleado import Empleado
-from persistencia.empleado_dao import EmpleadoDAO
+from menus.menu_usuario import solicitar_login, menu_privado
+from menus.menu_empleado import menu_empleado
+from menus.menu_departamento import menu_departamento
+from menus.menu_proyecto import menu_proyecto
+from menus.menu_registrotiempo import menu_registrotiempo
 
-crear_tablas()
-empleado = Empleado(nombre="Ana Pérez", correo="ana@ecotech.cl")
-
-print("Antes:", empleado.id)
-# None
-
-EmpleadoDAO.insertar(empleado)
-
-print("Después:", empleado.id)
-# id generado por la BD
+# Definición de excepciones según el motor
+ERRORES_BD = (sqlite3.Error, pymysql.MySQLError)
 
 
 def preparar_base_de_datos():
-    #Crea las tablas. Devuelve False si la base no está disponible.
+    """Crea las tablas. Devuelve False si la base de datos no está disponible."""
     try:
         crear_tablas()
         return True
-    except ErrorConfiguracion as error:
-        print(f"Configuración incorrecta: {error}. Revise el archivo .env.")
+    except ValueError as error:
+        print(f"Error de configuración: {error}. Revise el archivo .env.")
     except ERRORES_BD:
         logging.getLogger("ecotech").exception("No se pudo preparar la base de datos")
-        print("No fue posible conectar con la base de datos. "
-              "Revise la configuración del archivo .env.")
+        print("No fue posible conectar con la base de datos. Revise el archivo .env.")
     return False
+
+
+def solicitar_opcion(max_opcion):
+    """Solicita y valida una opción numérica del menú."""
+    try:
+        opcion = int(input(f"Seleccione una opción (0-{max_opcion}): "))
+        if 0 <= opcion <= max_opcion:
+            return opcion
+    except ValueError:
+        pass
+    print("Opción inválida.")
+    return None
+
+
+def mostrar_menu():
+    print("\n=== SISTEMA ECOTECH ===")
+    print("1. Menú Empleados")
+    print("2. Menú Departamentos")
+    print("3. Menú Proyectos")
+    print("4. Menú Registros de Tiempo")
+    print("0. Salir")
+
+
+def flujo_principal():
+    """Maneja el ciclo principal de menús del sistema."""
+    menus = {
+        1: menu_empleado,
+        2: menu_departamento,
+        3: menu_proyecto,
+        4: menu_registrotiempo,
+    }
+
+    while True:
+        mostrar_menu()
+        opcion = solicitar_opcion(4)
+        if opcion == 0:
+            print("Cerrando sesión...")
+            break
+        elif opcion in menus:
+            menus[opcion]()
 
 
 def main():
@@ -35,104 +73,32 @@ def main():
         level=logging.ERROR,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
+
     if not preparar_base_de_datos():
         return
 
-    menus = {
-        1: menu_empleado,
-        2: menu_departamento,
-        3: menu_proyecto,
-        4: menu_registrotiempo,
-    }
+    # Autenticación al iniciar
     while True:
-        mostrar_menu()
-        opcion = solicitar_opcion(4)
-        if opcion == 0:
-            print("Hasta luego.")
-            return
-        menus[opcion]()
+        print("\n--- INICIO DE SESIÓN ---")
+        usuario_actual = solicitar_login()
+        
+        if usuario_actual is None:
+            if input("Presione Enter para reintentar o '0' para salir del programa: ").strip() == "0":
+                print("Programa finalizado.")
+                return
+            continue
+
+        # Si el usuario se autentica correctamente
+        print(f"\nBienvenido/a, {usuario_actual.nombre_usuario} (Rol: {usuario_actual.rol})")
+        
+        # Ejecuta el flujo según el diseño deseado
+        flujo_principal()
+        
+        usuario_actual = None  # Cierre de sesión al terminar
 
 
 if __name__ == "__main__":
     try:
         main()
     except (KeyboardInterrupt, EOFError):
-        print("\nPrograma finalizado.")
- #cambiar y revisar todolo que esta arriba de este comentario
-
-#Inicio del programa con login inmediato
-from menu_usuario import solicitar_login, menu_privado
-
-def main():
-    while True:
-        usuario_actual = solicitar_login()
-        if usuario_actual is None:
-            if input("Enter para reintentar o 0 para salir: ") == "0":
-                return
-            continue
-        opcion = menu_privado(usuario_actual)
-        usuario_actual = None # Terminar el acceso de esta sesión.
-        if opcion == "0":
-            return
-        print("Sesión cerrada. Ingrese nuevamente.")
-if __name__ == "__main__":
-    main()
-
-#Demostración · comprobar CREATE + READ desde main.py / clase 5
-from dominio.empleado import Empleado
-from persistencia.empleado_dao import EmpleadoDAO
-
-empleado = Empleado(
-    nombre="Ana Torres",
-    correo="ana.torres@ecotech.cl"
-)
-
-EmpleadoDAO.insertar(empleado)
-
-encontrado = EmpleadoDAO.buscar_por_id(empleado.id)
-print("Encontrado:", encontrado)
-
-print("Listado:")
-for item in EmpleadoDAO.listar():
-    print(item)
-
-#
-from dependencia.empleado import Empleado
-from persistencia.empleado_dao import EmpleadoDAO
-
-def registrar_empleado():
-    nombre = input("Nombre: ").strip()
-    correo = input("Correo: ").strip()
-
-    empleado = Empleado(nombre, correo)
-
-    try:
-        EmpleadoDAO.insertar(empleado)
-        print("Empleado registrado correctamente.")
-    except Exception:
-        print("No fue posible registrar el empleado.")
-
-
-
-#
-from menus.menu_empleado import menu_empleado
-from menus.menu_proyecto import menu_proyecto
-    
-def main():
-    while True:
-        print("\n=== SISTEMA ===")
-        print("1. Empleados")
-        print("2. Proyectos")
-        print("0. Salir")
-
-        opcion = input("Seleccione una opción: ")
-
-        if opcion == "1":
-            menu_empleado()
-        elif opcion == "2":
-            menu_proyecto()
-        elif opcion == "0":
-            break
-
-if __name__ == "__main__":
-    main()
+        print("\nPrograma interrumpido. Hasta luego.")

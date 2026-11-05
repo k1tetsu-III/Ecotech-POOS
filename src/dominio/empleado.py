@@ -3,14 +3,14 @@ from utilidades import correo_valido, entero_positivo, texto_no_vacio
 
 class Empleado:
 
-    def __init__(self, nombre, correo, departamento_id=None, id=None):
+    def __init__(self, nombre, correo, direccion=None, telefono=None, departamento_id=None, id=None):
         self.id = id  # None hasta que la base de datos lo genera
         self.nombre = nombre
         self.correo = correo
+        self.direccion = direccion
+        self.telefono = telefono
         self.departamento_id = departamento_id
 
-    # Los atributos se guardan con "_" y se modifican solo mediante
-    # propiedades que validan, para que el objeto nunca quede inválido.
     @property
     def nombre(self):
         return self._nombre
@@ -28,6 +28,22 @@ class Empleado:
         self._correo = correo_valido(valor)
 
     @property
+    def direccion(self):
+        return self._direccion
+
+    @direccion.setter
+    def direccion(self, valor):
+        self._direccion = valor
+
+    @property
+    def telefono(self):
+        return self._telefono
+
+    @telefono.setter
+    def telefono(self, valor):
+        self._telefono = valor
+
+    @property
     def departamento_id(self):
         return self._departamento_id
 
@@ -39,7 +55,9 @@ class Empleado:
 
     def mostrar_datos(self):
         depto = self.departamento_id if self.departamento_id is not None else "sin departamento"
-        return f"[{self.id}] {self.nombre} - {self.correo} (departamento: {depto})"
+        dir_txt = self.direccion if self.direccion else "sin dirección"
+        tel_txt = self.telefono if self.telefono else "sin teléfono"
+        return f"[{self.id}] {self.nombre} - {self.correo} | Tel: {tel_txt} | Dir: {dir_txt} (departamento: {depto})"
 
     def __str__(self):
-        return self.mostrar_datos()
+        return self.mostrar_datos() 

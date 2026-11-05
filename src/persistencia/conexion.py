@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import pymysql
+from contextlib import contextmanager  # <-- AGREGADO: Necesario para usar @contextmanager
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,26 +26,14 @@ def abrir_conexion():
         )
     raise ValueError(f"Motor no soportado: {motor}")
 
-#Demostración · Centralizar el marcador SQL /clase 5
 def marcador_sql():
     if obtener_motor() == "sqlite":
         return "?"
     return "%s"
 
-#revisar abajo de este comentario
 @contextmanager
 def conexion_segura():
-    """Abre una conexión y garantiza commit, rollback y cierre.
-
-    Uso en un DAO:
-        with conexion_segura() as conexion:
-            cursor = conexion.cursor()
-            ...
-    - Si el bloque termina bien: commit.
-    - Si ocurre una excepción: rollback y la excepción se propaga
-      (el DAO detecta el fallo; la aplicación decide qué mostrar).
-    - Siempre: se cierra la conexión.
-    """
+    """Abre una conexión y garantiza commit, rollback y cierre."""
     conexion = None
     try:
         conexion = abrir_conexion()
