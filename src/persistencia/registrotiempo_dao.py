@@ -89,7 +89,14 @@ class RegistroTiempoDAO:
                  registro.descripcion, registro.id),
             )
             filas_afectadas = cursor.rowcount
-        return filas_afectadas > 0
+            if filas_afectadas > 0:
+                return True
+
+            cursor.execute(
+                f"SELECT 1 FROM registro_tiempo WHERE id = {marca}",
+                (registro.id,),
+            )
+            return cursor.fetchone() is not None
 
     @staticmethod
     def eliminar(id_registro):

@@ -93,7 +93,14 @@ class EmpleadoDAO:
                 ),
             )
             filas_afectadas = cursor.rowcount
-        return filas_afectadas > 0
+            if filas_afectadas > 0:
+                return True
+
+            cursor.execute(
+                f"SELECT 1 FROM empleado WHERE id = {marca}",
+                (empleado.id,),
+            )
+            return cursor.fetchone() is not None
 
     @staticmethod
     def eliminar(id_empleado):

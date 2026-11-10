@@ -15,6 +15,12 @@ class DepartamentoDAO:
         with conexion_segura() as conexion:
             cursor = conexion.cursor()
             cursor.execute(
+                f"SELECT 1 FROM departamento WHERE nombre = {marca} LIMIT 1",
+                (departamento.nombre,),
+            )
+            if cursor.fetchone() is not None:
+                raise ValueError("Ya existe un departamento con ese nombre.")
+            cursor.execute(
                 f"INSERT INTO departamento (nombre) VALUES ({marca})",
                 (departamento.nombre,),
             )
@@ -47,11 +53,32 @@ class DepartamentoDAO:
         with conexion_segura() as conexion:
             cursor = conexion.cursor()
             cursor.execute(
+                f"SELECT 1 FROM departamento WHERE id = {marca}",
+                (departamento.id,),
+            )
+            if cursor.fetchone() is None:
+                return False
+
+            cursor.execute(
+                f"SELECT 1 FROM departamento "
+                f"WHERE nombre = {marca} AND id <> {marca} LIMIT 1",
+                (departamento.nombre, departamento.id),
+            )
+            if cursor.fetchone() is not None:
+                raise ValueError("Ya existe un departamento con ese nombre.")
+
+            cursor.execute(
                 f"UPDATE departamento SET nombre = {marca} WHERE id = {marca}",
                 (departamento.nombre, departamento.id),
             )
-            filas_afectadas = cursor.rowcount
-        return filas_afectadas > 0
+            if cursor.rowcount > 0:
+                return True
+
+            cursor.execute(
+                f"SELECT 1 FROM departamento WHERE id = {marca}",
+                (departamento.id,),
+            )
+            return cursor.fetchone() is not None
 
     @staticmethod
     def eliminar(id_departamento):

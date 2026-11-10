@@ -8,6 +8,17 @@ from persistencia.registrotiempo_dao import RegistroTiempoDAO
 from utilidades import entero_positivo, fecha_valida, horas_validas, texto_opcional
 
 
+_MANTENER_DESCRIPCION = object()
+
+
+def _validar_descripcion_actualizacion(valor):
+    if valor == "":
+        return _MANTENER_DESCRIPCION
+    if valor == "!":
+        return ""
+    return texto_opcional(valor, "La descripción")
+
+
 def mostrar_menu():
     print("\n--- REGISTRO DE TIEMPO ---")
     print("1. Registrar horas")
@@ -55,12 +66,18 @@ def listar_registros():
 @operacion_segura
 def listar_por_empleado():
     id_empleado = pedir("ID del empleado: ", entero_positivo, "El empleado")
+    if EmpleadoDAO.buscar_por_id(id_empleado) is None:
+        print("  Empleado no encontrado.")
+        return
     _mostrar(RegistroTiempoDAO.listar_por_empleado(id_empleado))
 
 
 @operacion_segura
 def listar_por_proyecto():
     id_proyecto = pedir("ID del proyecto: ", entero_positivo, "El proyecto")
+    if ProyectoDAO.buscar_por_id(id_proyecto) is None:
+        print("  Proyecto no encontrado.")
+        return
     _mostrar(RegistroTiempoDAO.listar_por_proyecto(id_proyecto))
 
 
@@ -75,12 +92,15 @@ def actualizar_registro():
     print("  (Enter para mantener el valor actual)")
     fecha = pedir("Nueva fecha AAAA-MM-DD: ", fecha_valida, vacio_ok=True)
     horas = pedir("Nuevas horas: ", horas_validas, vacio_ok=True)
-    descripcion = pedir("Nueva descripción: ", texto_opcional, "La descripción", vacio_ok=True)
+    descripcion = pedir(
+        "Nueva descripción (Enter = mantener, ! = borrar): ",
+        _validar_descripcion_actualizacion,
+    )
     if fecha is not None:
         registro.fecha = fecha
     if horas is not None:
         registro.horas = horas
-    if descripcion is not None:
+    if descripcion is not _MANTENER_DESCRIPCION:
         registro.descripcion = descripcion
     if RegistroTiempoDAO.actualizar(registro):
         print("  Registro actualizado correctamente.")

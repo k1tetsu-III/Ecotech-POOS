@@ -1,13 +1,11 @@
-from dominio.empleado import Empleado
 from utilidades import texto_no_vacio
-
 
 class Departamento:
 
     def __init__(self, nombre, id=None):
         self.id = id
         self.nombre = nombre
-        self._empleados = []  # multiplicidad 0..* -> colección de objetos
+        self._empleados = []
 
     @property
     def nombre(self):
@@ -19,26 +17,29 @@ class Departamento:
 
     @property
     def empleados(self):
-        """Vista de solo lectura: no expone la lista interna."""
         return tuple(self._empleados)
 
     def cantidad_empleados(self):
         return len(self._empleados)
 
     def agregar_empleado(self, empleado):
-        """Agrega un empleado. Devuelve False si ya estaba en el departamento.
+        from .empleado import Empleado
 
-        Regla UML: un empleado pertenece como máximo a un departamento.
-        """
         if not isinstance(empleado, Empleado):
-            raise ValueError("Solo se pueden agregar objetos Empleado.")
+            raise ValueError("Solo se pueden agregar objetos de tipo Empleado.")
+
         if empleado.departamento_id not in (None, self.id):
             raise ValueError("El empleado ya pertenece a otro departamento.")
+
         for existente in self._empleados:
             if existente is empleado or (
                 empleado.id is not None and existente.id == empleado.id
             ):
                 return False
+
+        if self.id is not None and empleado.departamento_id is None:
+            empleado.departamento_id = self.id
+
         self._empleados.append(empleado)
         return True
 

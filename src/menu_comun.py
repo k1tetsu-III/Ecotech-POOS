@@ -6,13 +6,15 @@ from persistencia.conexion import ERRORES_BD, ERRORES_INTEGRIDAD, ErrorConfigura
 _registro = logging.getLogger("ecotech")
 
 
-def pedir(mensaje, validador, *args, vacio_ok=False):
+def pedir(mensaje, validador, *args, vacio_ok=False, leer=None):
     #Pide un dato por teclado hasta que sea válido.
 
     #Si vacio_ok es True, una entrada vacía devuelve None (dato opcional).
-    
+    if leer is None:
+        leer = input
+
     while True:
-        texto = input(mensaje).strip()
+        texto = leer(mensaje).strip()
         if vacio_ok and texto == "":
             return None
         try:
@@ -21,11 +23,14 @@ def pedir(mensaje, validador, *args, vacio_ok=False):
             print(f"  Dato no válido: {error}")
 
 
-def solicitar_opcion(maximo):
+def solicitar_opcion(maximo, leer=None):
     #Pide una opción numérica entre 0 y maximo.
+    if leer is None:
+        leer = input
+
     while True:
         try:
-            opcion = int(input("Seleccione una opción: "))
+            opcion = int(leer("Seleccione una opción: "))
         except ValueError:
             print("  Debe ingresar un número.")
             continue
@@ -49,11 +54,11 @@ def operacion_segura(funcion):
     def envoltura(*args, **kwargs):
         try:
             return funcion(*args, **kwargs)
-        except ValueError as error:
-            print(f"  Dato no válido: {error}")
         except ErrorConfiguracion as error:
             _registro.exception("Configuración incorrecta")
             print(f"  Configuración de base de datos incorrecta: {error}")
+        except ValueError as error:
+            print(f"  Dato no válido: {error}")
         except ERRORES_INTEGRIDAD:
             _registro.exception("Violación de integridad")
             print("  No se pudo completar: el dato está duplicado o "

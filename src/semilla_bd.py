@@ -1,22 +1,66 @@
+import os
+
 from dominio.departamento import Departamento
 from dominio.empleado import Empleado
 from dominio.usuario import Usuario
 from persistencia.departamento_dao import DepartamentoDAO
 from persistencia.empleado_dao import EmpleadoDAO
+from persistencia.crear_bd import crear_tablas
 from persistencia.usuario_dao import UsuarioDAO
+
+
+def _obtener_departamento_semilla():
+    for departamento in DepartamentoDAO.listar():
+        if departamento.nombre == "Tecnología":
+            print(f"Usando departamento existente: {departamento.nombre}")
+            return departamento
+
+    departamento = DepartamentoDAO.insertar(Departamento(nombre="Tecnología"))
+    print(f"Departamento creado: {departamento.nombre} (ID: {departamento.id})")
+    return departamento
+
+
+def _asegurar_usuario_semilla(empleado, nombre_usuario, rol, variable_clave):
+    existente = UsuarioDAO.buscar_por_nombre_usuario(nombre_usuario)
+    if existente is not None:
+        if existente.empleado_id != empleado.id or existente.rol != rol:
+            raise ValueError(
+                f"El usuario semilla '{nombre_usuario}' ya existe con otra "
+                "asociación o rol; no se modificó."
+            )
+        print(f"Usuario '{nombre_usuario}' ya existe.")
+        return existente
+
+    cuenta_empleado = UsuarioDAO.buscar_por_empleado_id(empleado.id)
+    if cuenta_empleado is not None:
+        raise ValueError(
+            f"El empleado {empleado.id} ya tiene la cuenta "
+            f"'{cuenta_empleado.nombre_usuario}'; no se creó '{nombre_usuario}'."
+        )
+
+    clave = os.getenv(variable_clave)
+    if not clave:
+        raise ValueError(
+            f"Configure la variable {variable_clave} para crear "
+            f"el usuario semilla '{nombre_usuario}'."
+        )
+
+    usuario = Usuario(
+        empleado_id=empleado.id,
+        nombre_usuario=nombre_usuario,
+        password_hash=Usuario.encriptar_clave(clave),
+        rol=rol,
+    )
+    UsuarioDAO.insertar(usuario)
+    print(f"Usuario '{nombre_usuario}' creado correctamente.")
+    return usuario
 
 
 def cargar_datos_semilla():
     print("--- Carga de Datos Semilla ---")
+    crear_tablas()
 
-    # 1. Cargar Departamento de prueba
-    deptos = DepartamentoDAO.listar()
-    if not deptos:
-        depto_demo = DepartamentoDAO.insertar(Departamento(nombre="Tecnología"))
-        print(f"Departamento creado: {depto_demo.nombre} (ID: {depto_demo.id})")
-    else:
-        depto_demo = deptos[0]
-        print(f"Usando departamento existente: {depto_demo.nombre}")
+    depto_demo = _obtener_departamento_semilla()
 
     # 2. Cargar Empleados
     datos_empleados = [
@@ -41,7 +85,6 @@ def cargar_datos_semilla():
             print(f"Empleado ya existe: {datos['correo']}")
             empleados_creados.append(existente)
         else:
-            # Corrección de firma: departamento_id enviado como argumento nombrado
             empleado = Empleado(
                 nombre=datos["nombre"],
                 correo=datos["correo"],
@@ -53,34 +96,22 @@ def cargar_datos_semilla():
             empleados_creados.append(empleado)
             print(f"Empleado creado: {empleado.nombre} ({empleado.correo})")
 
-    # 3. Cargar Usuarios para Login (Admin y Empleado estándar)
+    # 3. Crear cuentas de demostración sin sobrescribir cuentas existentes.
     if empleados_creados:
-        # Crear Admin vinculado al primer empleado
-        emp_admin = empleados_creados[0]
-        user_admin = UsuarioDAO.buscar_por_nombre_usuario("admin")
-        if not user_admin:
-            usuario_admin = Usuario(
-                empleado_id=emp_admin.id,
-                nombre_usuario="admin",
-                password_hash="admin123",  # En producción usar hash (ej. bcrypt)
-                rol="admin",
-            )
-            UsuarioDAO.insertar(usuario_admin)
-            print(f"Usuario 'admin' creado correctamente (Password: admin123)")
+        _asegurar_usuario_semilla(
+            empleados_creados[0],
+            "admin",
+            "admin",
+            "ECOTECH_SEED_ADMIN_PASSWORD",
+        )
 
-        # Crear Usuario estándar vinculado al segundo empleado
         if len(empleados_creados) > 1:
-            emp_user = empleados_creados[1]
-            user_std = UsuarioDAO.buscar_por_nombre_usuario("cmendoza")
-            if not user_std:
-                usuario_std = Usuario(
-                    empleado_id=emp_user.id,
-                    nombre_usuario="cmendoza",
-                    password_hash="user123",
-                    rol="empleado",
-                )
-                UsuarioDAO.insertar(usuario_std)
-                print(f"Usuario 'cmendoza' creado correctamente (Password: user123)")
+            _asegurar_usuario_semilla(
+                empleados_creados[1],
+                "cmendoza",
+                "empleado",
+                "ECOTECH_SEED_EMPLOYEE_PASSWORD",
+            )
 
 
 if __name__ == "__main__":

@@ -1,25 +1,19 @@
 import logging
-import sqlite3
-import pymysql
 
-from persistencia.conexion import obtener_motor
+from persistencia.conexion import ERRORES_BD, ErrorConfiguracion
 from persistencia.crear_bd import crear_tablas
-from menus.menu_usuario import solicitar_login, menu_privado
-from menus.menu_empleado import menu_empleado
-from menus.menu_departamento import menu_departamento
-from menus.menu_proyecto import menu_proyecto
-from menus.menu_registrotiempo import menu_registrotiempo
-
-# Definición de excepciones según el motor
-ERRORES_BD = (sqlite3.Error, pymysql.MySQLError)
-
+from menu_usuario import solicitar_login, solicitar_registro, menu_privado
+from menu_empleado import menu_empleado
+from menu_departamento import menu_departamento
+from menu_proyecto import menu_proyecto
+from menu_registrotiempo import menu_registrotiempo
 
 def preparar_base_de_datos():
     """Crea las tablas. Devuelve False si la base de datos no está disponible."""
     try:
         crear_tablas()
         return True
-    except ValueError as error:
+    except ErrorConfiguracion as error:
         print(f"Error de configuración: {error}. Revise el archivo .env.")
     except ERRORES_BD:
         logging.getLogger("ecotech").exception("No se pudo preparar la base de datos")
@@ -45,11 +39,18 @@ def mostrar_menu():
     print("2. Menú Departamentos")
     print("3. Menú Proyectos")
     print("4. Menú Registros de Tiempo")
+    print("5. Crear cuenta para un empleado")
     print("0. Salir")
 
 
-def flujo_principal():
+def flujo_principal(usuario_actual):
     """Maneja el ciclo principal de menús del sistema."""
+    rol = usuario_actual.get("rol")
+    if rol == "empleado":
+        return menu_privado(usuario_actual) == "0"
+    if rol != "admin":
+        raise PermissionError("El rol de la sesión no es válido.")
+
     menus = {
         1: menu_empleado,
         2: menu_departamento,
@@ -59,12 +60,14 @@ def flujo_principal():
 
     while True:
         mostrar_menu()
-        opcion = solicitar_opcion(4)
+        opcion = solicitar_opcion(5)
         if opcion == 0:
-            print("Cerrando sesión...")
-            break
+            print("Programa finalizado.")
+            return True
         elif opcion in menus:
             menus[opcion]()
+        elif opcion == 5:
+            solicitar_registro(usuario_actual)
 
 
 def main():
@@ -89,12 +92,17 @@ def main():
             continue
 
         # Si el usuario se autentica correctamente
-        print(f"\nBienvenido/a, {usuario_actual.nombre_usuario} (Rol: {usuario_actual.rol})")
+        print(
+            f"\nBienvenido/a, {usuario_actual['nombre_usuario']} "
+            f"(Rol: {usuario_actual['rol']})"
+        )
         
-        # Ejecuta el flujo según el diseño deseado
-        flujo_principal()
-        
-        usuario_actual = None  # Cierre de sesión al terminar
+        # Los administradores gestionan los módulos; los empleados solo usan
+        # las opciones privadas de su cuenta.
+        salir = flujo_principal(usuario_actual)
+        if salir:
+            return
+        print("Sesión cerrada.")
 
 
 if __name__ == "__main__":

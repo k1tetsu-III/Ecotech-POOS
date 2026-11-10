@@ -1,10 +1,9 @@
-from utilidades import correo_valido, entero_positivo, texto_no_vacio
-
+from utilidades import correo_valido, entero_positivo, texto_no_vacio, texto_opcional
 
 class Empleado:
 
     def __init__(self, nombre, correo, direccion=None, telefono=None, departamento_id=None, id=None):
-        self.id = id  # None hasta que la base de datos lo genera
+        self.id = id
         self.nombre = nombre
         self.correo = correo
         self.direccion = direccion
@@ -33,7 +32,9 @@ class Empleado:
 
     @direccion.setter
     def direccion(self, valor):
-        self._direccion = valor
+        # CORRECCIÓN: Aplicación de la función helper 'texto_opcional'.
+        # POR QUÉ: Asegura la limpieza del texto (strip) y evita registrar cadenas vacías desformateadas en el dominio.
+        self._direccion = texto_opcional(valor, "La dirección")
 
     @property
     def telefono(self):
@@ -41,7 +42,9 @@ class Empleado:
 
     @telefono.setter
     def telefono(self, valor):
-        self._telefono = valor
+        # CORRECCIÓN: Aplicación de la función helper 'texto_opcional'.
+        # POR QUÉ: Garantiza consistencia en el tipo de dato recibido cuando el teléfono es opcional.
+        self._telefono = texto_opcional(valor, "El teléfono")
 
     @property
     def departamento_id(self):
@@ -60,4 +63,4 @@ class Empleado:
         return f"[{self.id}] {self.nombre} - {self.correo} | Tel: {tel_txt} | Dir: {dir_txt} (departamento: {depto})"
 
     def __str__(self):
-        return self.mostrar_datos() 
+        return self.mostrar_datos()

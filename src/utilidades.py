@@ -20,7 +20,11 @@ def texto_no_vacio(valor, campo="El texto", maximo=100):
 
 
 def texto_opcional(valor, campo="El texto", maximo=255):
-    if valor is None or not str(valor).strip():
+    if valor is None:
+        return ""
+    if not isinstance(valor, str):
+        raise ValueError(f"{campo} debe ser texto.")
+    if not valor.strip():
         return ""
     return texto_no_vacio(valor, campo, maximo)
 
@@ -37,21 +41,28 @@ def entero_positivo(valor, campo="El valor"):
         raise ValueError(f"{campo} debe ser un número entero.")
     try:
         numero = int(valor)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         raise ValueError(f"{campo} debe ser un número entero.") from None
+    if not isinstance(valor, str) and numero != valor:
+        raise ValueError(f"{campo} debe ser un número entero.")
     if numero <= 0:
         raise ValueError(f"{campo} debe ser mayor que cero.")
     return numero
 
 
 def horas_validas(valor):
+    if isinstance(valor, bool):
+        raise ValueError("Las horas deben ser un número (ej: 2.5).")
     try:
         horas = float(str(valor).replace(",", "."))
     except (TypeError, ValueError):
         raise ValueError("Las horas deben ser un número (ej: 2.5).") from None
     if not 0 < horas <= 24:
         raise ValueError("Las horas deben estar entre 0 y 24.")
-    return round(horas, 2)
+    horas_redondeadas = round(horas, 2)
+    if horas_redondeadas == 0:
+        raise ValueError("Las horas deben ser al menos 0.01 al redondear a dos decimales.")
+    return horas_redondeadas
 
 
 def fecha_valida(valor):

@@ -41,7 +41,7 @@ classDiagram
 
 | Relación UML | En Python | En la base de datos |
 |---|---|---|
-| Departamento 1 — 0..* Empleado | `Departamento._empleados` (lista) y `Empleado.departamento_id` | `empleado.departamento_id` (FK, `ON DELETE SET NULL`) |
+| Departamento 1 — 0..* Empleado | `Departamento._empleados` (lista) y `Empleado.departamento_id`; `agregar_empleado()` asigna el ID del departamento en memoria cuando el empleado aún no tiene uno | `empleado.departamento_id` (FK, `ON DELETE SET NULL`) |
 | Empleado 1 — 0..* RegistroTiempo | `RegistroTiempo.empleado_id` | `registro_tiempo.empleado_id` (FK, obligatoria) |
 | Proyecto 1 — 0..* RegistroTiempo | `RegistroTiempo.proyecto_id` | `registro_tiempo.proyecto_id` (FK, obligatoria) |
 

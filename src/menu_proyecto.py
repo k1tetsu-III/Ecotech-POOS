@@ -4,6 +4,17 @@ from persistencia.proyecto_dao import ProyectoDAO
 from utilidades import entero_positivo, texto_no_vacio, texto_opcional
 
 
+_MANTENER_DESCRIPCION = object()
+
+
+def _validar_descripcion_actualizacion(valor):
+    if valor == "":
+        return _MANTENER_DESCRIPCION
+    if valor == "!":
+        return ""
+    return texto_opcional(valor, "La descripción")
+
+
 def mostrar_menu():
     print("\n--- PROYECTOS ---")
     print("1. Registrar proyecto")
@@ -18,7 +29,13 @@ def mostrar_menu():
 def registrar_proyecto():
     nombre = pedir("Nombre del proyecto: ", texto_no_vacio, "El nombre")
     descripcion = pedir("Descripción (opcional): ", texto_opcional, "La descripción")
-    proyecto = Proyecto(nombre, descripcion)
+    pais = pedir(
+        "País del proyecto (Enter = Chile): ",
+        texto_no_vacio,
+        "El país",
+        vacio_ok=True,
+    )
+    proyecto = Proyecto(nombre, descripcion, pais=pais or "Chile")
     ProyectoDAO.insertar(proyecto)
     print(f"  Proyecto registrado con ID {proyecto.id}.")
 
@@ -49,11 +66,17 @@ def actualizar_proyecto():
     print(" ", proyecto)
     print("  (Enter para mantener el valor actual)")
     nombre = pedir("Nuevo nombre: ", texto_no_vacio, "El nombre", vacio_ok=True)
-    descripcion = pedir("Nueva descripción: ", texto_opcional, "La descripción", vacio_ok=True)
+    descripcion = pedir(
+        "Nueva descripción (Enter = mantener, ! = borrar): ",
+        _validar_descripcion_actualizacion,
+    )
+    pais = pedir("Nuevo país: ", texto_no_vacio, "El país", vacio_ok=True)
     if nombre is not None:
         proyecto.nombre = nombre
-    if descripcion is not None:
+    if descripcion is not _MANTENER_DESCRIPCION:
         proyecto.descripcion = descripcion
+    if pais is not None:
+        proyecto.pais = pais
     if ProyectoDAO.actualizar(proyecto):
         print("  Proyecto actualizado correctamente.")
     else:

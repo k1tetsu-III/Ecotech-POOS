@@ -17,6 +17,8 @@ class UsuarioDAO:
 
     @staticmethod
     def insertar(usuario):
+        if not Usuario.es_hash_bcrypt(usuario.password_hash):
+            raise ValueError("Solo se pueden guardar contraseñas con hash bcrypt.")
         marca = marcador_sql()
         with conexion_segura() as conexion:
             cursor = conexion.cursor()
@@ -61,6 +63,8 @@ class UsuarioDAO:
 
     @staticmethod
     def actualizar(usuario):
+        if not Usuario.es_hash_bcrypt(usuario.password_hash):
+            raise ValueError("Solo se pueden guardar contraseñas con hash bcrypt.")
         marca = marcador_sql()
         with conexion_segura() as conexion:
             cursor = conexion.cursor()
@@ -69,6 +73,21 @@ class UsuarioDAO:
                     SET nombre_usuario = {marca}, password = {marca}, rol = {marca} 
                     WHERE id = {marca}""",
                 (usuario.nombre_usuario, usuario.password_hash, usuario.rol, usuario.id),
+            )
+            filas_afectadas = cursor.rowcount
+        return filas_afectadas > 0
+
+    @staticmethod
+    def actualizar_password_hash(id_usuario, hash_actual, hash_nuevo):
+        if not Usuario.es_hash_bcrypt(hash_nuevo):
+            raise ValueError("La nueva contraseña debe tener un hash bcrypt.")
+        marca = marcador_sql()
+        with conexion_segura() as conexion:
+            cursor = conexion.cursor()
+            cursor.execute(
+                f"UPDATE usuario SET password = {marca} "
+                f"WHERE id = {marca} AND password = {marca}",
+                (hash_nuevo, id_usuario, hash_actual),
             )
             filas_afectadas = cursor.rowcount
         return filas_afectadas > 0
